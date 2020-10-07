@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run effMap.py
+web: sh setup.sh && streamlit run effmap_demo/effmap_demo.py
