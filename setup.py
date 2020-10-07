@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="effmap_demo",
-    version="0.0.1",
+    version="0.0.2",
     author="Ivan Okhotnikov",
     author_email="ivan.okhotnikov@outlook.com",
     description="Streamlit demonstration of usage of regressor and HST object introduced in effmap",
