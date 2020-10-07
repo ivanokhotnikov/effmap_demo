@@ -16,7 +16,7 @@ def plot_validation():
     Returns:
         fig: plotly figure object
     """
-    data = pd.read_csv('.\\data\\test_data.csv')
+    data = pd.read_csv('https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/effmap_demo/data/test_data.csv')
     data.dropna(subset=['Forward Speed', 'Reverse Speed',
                         'Volumetric at 1780RPM'], inplace=True)
     speeds = data[['Forward Speed', 'Reverse Speed']].astype(float)
@@ -258,7 +258,7 @@ def set_sidebar():
 
 def main():
     """Runs through the funcionality of the Regressor and HST classes."""
-    data = pd.read_csv('.\\data\\data.csv', index_col='#')
+    data = pd.read_csv('https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/effmap_demo/data/data.csv', index_col='#')
     if os.path.exists('.\\models') and len(os.listdir('.\\models')):
         models = {}
         for file in os.listdir('.\\models'):

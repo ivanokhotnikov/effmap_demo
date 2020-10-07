@@ -1,6 +1,5 @@
-dist/effmap_demo-0.0.1-py3-none-any.whl
-dist/effmap_demo-0.0.1.tar.gz
-effmap_demo.egg-info/dependency_links.txt
-effmap_demo.egg-info/PKG-INFO
-effmap_demo.egg-info/SOURCES.txt
-effmap_demo.egg-info/top_level.txt
+dist/*
+build/*
+effmap_demo.egg-info/*
+effmap_demo/models/*
+effmap_demo/oils/*
