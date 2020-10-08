@@ -5,4 +5,4 @@ Effmap_demo is the python library, which demonstrates the use of the hydro-stati
 ## Web app
 https://effmap.herokuapp.com/
 
-Code for the classes: https://https://github.com/ivanokhotnikov/effmap
+Code for the classes: https://github.com/ivanokhotnikov/effmap
