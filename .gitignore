@@ -1,7 +1,2 @@
 dist/*
 build/*
-effmap_demo.egg-info/*
-effmap_demo/models/*
-effmap_demo/oils/*
-models/*
-oils/*
