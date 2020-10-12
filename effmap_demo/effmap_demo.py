@@ -12,6 +12,7 @@ from plotly.subplots import make_subplots
 from sklearn.model_selection import KFold, train_test_split, cross_validate
 
 
+@st.cache
 def plot_validation():
     """Performs validation of the efficiency model by computing the volumetric efficiency of the benchmark HST, for which test data is available containing results of measurements of the input/output speeds, and comparing the computed efficiency with the test data.
 
@@ -154,6 +155,7 @@ def fit_catalogues(data_in):
     return models
 
 
+@st.cache
 def plot_catalogues(models, data_in):
     fig = make_subplots(rows=2, cols=2, shared_xaxes=True,
                         shared_yaxes=True, vertical_spacing=0.1, horizontal_spacing=0.07,
@@ -259,8 +261,8 @@ def set_sidebar():
     return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim
 
 
-def main(mode='train'):
-    """Runs through the funcionality of the Regressor and HST classes."""
+@st.cache
+def process_catalogues(mode):
     data = pd.read_csv(
         'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/data/data.csv', index_col='#')
     models = {}
@@ -277,7 +279,24 @@ def main(mode='train'):
                 link = f'https://github.com/ivanokhotnikov/effmap_demo/blob/master/models/{machine_type}_{data_type}.joblib?raw=true'
                 mfile = BytesIO(requests.get(link).content)
                 models['_'.join((machine_type, data_type))] = load(mfile)
+    return models, data
+
+
+@st.cache
+def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure):
+    hst.compute_sizes()
+    hst.compute_speed_limit(models['pump_speed'])
+    hst.add_no_load((1800, 140), (2025, 180))
+    hst.compute_loads(pressure_lim)
+    return hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim,
+                             show_figure=False,
+                             save_figure=False)
+
+
+def main(mode='train'):
+    """Runs through the funcionality of the Regressor and HST classes."""
     st.title('Catalogue data and regressions')
+    models, data = process_catalogues(mode)
     st.write(plot_catalogues(models, data))
     for i in models:
         units = 'rpm' if 'speed' in i else 'kg'
@@ -286,16 +305,10 @@ def main(mode='train'):
             u'\u00B1', f'{np.round(models[i].cv_rmsestd_,decimals=2)}', units
         )
     oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim = set_sidebar()
+    st.title('Efficiency map')
     hst = HST(max_displ, oil=oil, oil_temp=oil_temp, max_power_input=max_power,
               input_gear_ratio=gear_ratio)
-    hst.compute_sizes()
-    hst.compute_speed_limit(models['pump_speed'])
-    hst.add_no_load((1800, 140), (2025, 180))
-    hst.compute_loads(pressure_lim)
-    st.title('Efficiency map')
-    st.write(hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim,
-                               show_figure=False,
-                               save_figure=False))
+    st.write(plot_hsu(hst, models, pressure_lim, max_speed, max_pressure))
     st.title('Physical properties of oil')
     st.write(hst.plot_oil())
     st.title('Validation of the HST efficiency model')
