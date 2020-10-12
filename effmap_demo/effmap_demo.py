@@ -276,7 +276,7 @@ def main(mode='train'):
             for data_type in ('mass', 'speed'):
                 link = f'https://github.com/ivanokhotnikov/effmap_demo/blob/master/models/{machine_type}_{data_type}.joblib?raw=true'
                 mfile = BytesIO(requests.get(link).content)
-                models['_'.join(machine_type, data_type)] = load(mfile)
+                models['_'.join((machine_type, data_type))] = load(mfile)
     st.title('Catalogue data and regressions')
     st.write(plot_catalogues(models, data))
     for i in models:
