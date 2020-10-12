@@ -1,8 +1,10 @@
 import os
+import requests
 import pandas as pd
 import numpy as np
 import streamlit as st
 import plotly.figure_factory as ff
+from io import BytesIO
 from joblib import dump, load
 from effmap.hst import HST
 from effmap.regressor import Regressor
@@ -16,7 +18,8 @@ def plot_validation():
     Returns:
         fig: plotly figure object
     """
-    data = pd.read_csv('https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/effmap_demo/data/test_data.csv')
+    data = pd.read_csv(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/data/test_data.csv')
     data.dropna(subset=['Forward Speed', 'Reverse Speed',
                         'Volumetric at 1780RPM'], inplace=True)
     speeds = data[['Forward Speed', 'Reverse Speed']].astype(float)
@@ -256,15 +259,24 @@ def set_sidebar():
     return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim
 
 
-def main():
+def main(mode='train'):
     """Runs through the funcionality of the Regressor and HST classes."""
-    data = pd.read_csv('https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/effmap_demo/data/data.csv', index_col='#')
-    if os.path.exists('.\\models') and len(os.listdir('.\\models')):
-        models = {}
-        for file in os.listdir('.\\models'):
-            models[file[:-7]] = load(os.path.join(os.getcwd(), 'models', file))
-    else:
-        models = fit_catalogues(data)
+    data = pd.read_csv(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/data/data.csv', index_col='#')
+    models = {}
+    if mode == 'train':
+        if os.path.exists('.\\models') and len(os.listdir('.\\models')):
+            for file in os.listdir('.\\models'):
+                models[file[:-7]
+                       ] = load(os.path.join(os.getcwd(), 'models', file))
+        else:
+            models = fit_catalogues(data)
+    elif mode == 'app':
+        for machine_type in ('pump', 'motor'):
+            for data_type in ('mass', 'speed'):
+                link = f'https://github.com/ivanokhotnikov/effmap_demo/blob/master/models/{machine_type}_{data_type}.joblib?raw=true'
+                mfile = BytesIO(requests.get(link).content)
+                models['_'.join(machine_type, data_type)] = load(mfile)
     st.title('Catalogue data and regressions')
     st.write(plot_catalogues(models, data))
     for i in models:
@@ -291,4 +303,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(mode='app')
