@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import numpy as np
 import streamlit as st
+import plotly.graph_objects as go
 import plotly.figure_factory as ff
 from io import BytesIO
 from joblib import dump, load
@@ -119,6 +120,19 @@ def plot_validation():
 
 
 def fit_catalogues(data_in):
+    """
+    Fits the custom Regressor model to the catalogue data. Each modelis cross_validated with the metrics being saved in the model's properties.
+
+    Parameters:
+    ---
+    data_in: pd.DataFrame
+        Catalogue data
+    
+    Returns:
+    ---
+    models: dict
+        Dictionary of the fitted models. Keys: 'pump_mass', 'pump_speed', 'motor_mass', 'motor_speed'. Values: Regressor objects
+    """
     models = {}
     if not os.path.exists('models'):
         os.mkdir('models')
@@ -157,6 +171,20 @@ def fit_catalogues(data_in):
 
 @st.cache
 def plot_catalogues(models, data_in):
+    """
+    Plots the catalogue data with regression models
+
+    Parameters:
+    ---
+    models: dict
+        Dictionary of regression models. Keys: 'pump_mass', 'pump_speed', 'motor_mass', 'motor_speed'. Values: Regressor objects
+    data_in: pd.DataFrame
+        Catalogue data
+
+    Returns:
+    ---
+    fig: plotly figure object
+    """
     fig = make_subplots(rows=2, cols=2, shared_xaxes=True,
                         shared_yaxes=True, vertical_spacing=0.1, horizontal_spacing=0.07,
                         )
@@ -228,10 +256,12 @@ def plot_catalogues(models, data_in):
     return fig
 
 
-def set_sidebar():
-    """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map.
+def set_sidebar(chart):
+    """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map. Alternatively, sets the default values for the comparison chart
 
     Returns:
+    ---
+    'map':
         oil: string, default 'SAE 15W40'
         oil_temp: int, default 100
         max_displ: int, default 440
@@ -240,29 +270,62 @@ def set_sidebar():
         max_speed: int, default 2400
         max_pressure: int, default 650
         pressure_lim: int, default 480
+
+    'chart':
+        displ_1: int, default 440
+        displ_2: int, defalut 330
+        speed: int, default 2025
+        pressure: int, default 475
     """
-    st.sidebar.markdown('Setting up the efficiency map')
-    oil = st.sidebar.selectbox('Select an oil:',
-                               ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
-    oil_temp = st.sidebar.slider(
-        'Select oil temperature', min_value=0, max_value=100, value=100, step=10)
-    max_displ = st.sidebar.slider(
-        'Select a displacement', min_value=100, max_value=800, value=440, step=5)
-    max_power = st.sidebar.slider(
-        'Select a max power', min_value=400, max_value=800, value=685, step=5)
-    gear_ratio = st.sidebar.slider(
-        'Select an input gear ratio', min_value=.5, max_value=2., value=.75, step=.25)
-    max_speed = st.sidebar.slider(
-        'Select a max speed', min_value=1000, max_value=4000, value=2400, step=100)
-    max_pressure = st.sidebar.slider(
-        'Select the max pressure', min_value=100, max_value=800, value=650, step=50)
-    pressure_lim = st.sidebar.slider(
-        'Select the pressure limiter setting', min_value=300, max_value=800, value=480, step=10)
-    return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim
+    if chart == 'map':
+        st.sidebar.markdown('Efficiency map')
+        oil = st.sidebar.selectbox('Oil',
+                                   ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
+        oil_temp = st.sidebar.slider(
+            'Oil temperature', min_value=0, max_value=100, value=100, step=10)
+        max_displ = st.sidebar.slider(
+            'Displacement', min_value=100, max_value=800, value=440, step=5)
+        max_power = st.sidebar.slider(
+            'Max transmitted power', min_value=400, max_value=800, value=685, step=5)
+        gear_ratio = st.sidebar.slider(
+            'Input gear ratio', min_value=.5, max_value=2., value=.75, step=.25)
+        max_speed = st.sidebar.slider(
+            'Max plotted speed', min_value=1000, max_value=4000, value=2400, step=100)
+        max_pressure = st.sidebar.slider(
+            'Max plotted pressure', min_value=100, max_value=800, value=650, step=50)
+        pressure_lim = st.sidebar.slider(
+            'Pressure limiter setting', min_value=300, max_value=800, value=480, step=10)
+        return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim
+    if chart == 'comparison':
+        st.sidebar.markdown('Comparison chart')
+        displ_1 = st.sidebar.slider(
+            'Displacement 1', min_value=100, max_value=800, value=440, step=10)
+        displ_2 = st.sidebar.slider(
+            'Displacement 2', min_value=100, max_value=800, value=330, step=10)
+        speed = st.sidebar.slider(
+            'Input speed', min_value=1000, max_value=3500, value=2025, step=25)
+        pressure = st.sidebar.slider(
+            'Discharge pressure', min_value=200, max_value=800, value=475, step=25)
+        return displ_1, displ_2, speed, pressure
 
 
 @st.cache
-def process_catalogues(mode):
+def process_catalogues(mode='app'):
+    """
+    Creates and returns the regression models as well as the catalogue data. Depending on the flag value, the models are either loaded from the github repo, or being fit to the catalogue data.
+
+    Parameters:
+    ---
+    mode: str, default 'app'
+        Flag to between 'train' and 'app' modes. If 'app' is selected, the models are being read from github repo. If 'train' - the fit_catalogues(data) is called and the models are build from scratch.
+
+    Returns:
+    ---
+    models: dict
+        Dictionary of four regression models with te following keys: 'pump_mass', 'pump_speed', 'motor_mass', 'motor_speed'
+    data: pd.DataFrame
+        Catalogues data
+    """
     data = pd.read_csv(
         'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/data/data.csv', index_col='#')
     models = {}
@@ -284,6 +347,13 @@ def process_catalogues(mode):
 
 @st.cache
 def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure):
+    """
+    For the given HST computes the sizes, efficiencies and plots the efficiency map.
+
+    Returns:
+    ---
+    fig: plotly figure object
+    """
     hst.compute_sizes()
     hst.compute_speed_limit(models['pump_speed'])
     hst.add_no_load((1800, 140), (2025, 180))
@@ -293,7 +363,60 @@ def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure):
                              save_figure=False)
 
 
-def main(mode='train'):
+@st.cache
+def plot_comparison(displ_1, displ_2, speed, pressure):
+    """
+    Prints a bar plot to comare total efficiencies of two HSTs.
+
+    Returns:
+    ---
+    fig: plotly figure object
+    """
+    effs_1, effs_2 = [], []
+    oils = ('SAE 15W40', 'SAE 10W40', 'SAE 10W60',
+            'SAE 5W40', 'SAE 0W30', 'SAE 30')
+    hst_1, hst_2 = HST(displ_1), HST(displ_2)
+    hst_1.compute_sizes()
+    hst_2.compute_sizes()
+    for oil in oils:
+        hst_1.oil, hst_2.oil = oil, oil
+        hst_1.load_oil()
+        hst_2.load_oil()
+        effs_1.append(hst_1.compute_eff(speed, pressure)['hst']['total'])
+        effs_2.append(hst_2.compute_eff(speed, pressure)['hst']['total'])
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=oils,
+        y=effs_1,
+        text=[f'{eff:.2f}' for eff in effs_1],
+        textposition='auto',
+        name=f'{displ_1}',
+        marker_color='indianred',
+    ))
+    fig.add_trace(go.Bar(
+        x=oils,
+        y=effs_2,
+        text=[f'{eff:.2f}' for eff in effs_2],
+        textposition='auto',
+        name=f'{displ_2}',
+        marker_color='steelblue',
+
+    ))
+    fig.update_layout(
+        title=f'Total efficiency of {displ_1} and {displ_2} cc/rev HSTs at {speed} rpm and {pressure} bar',
+        yaxis=dict(
+            title='Total HST efficiency, %',
+            range=[50, 90],
+        ),
+        plot_bgcolor='rgba(255,255,255,1)',
+        paper_bgcolor='rgba(255,255,255,0)',
+        showlegend=True,
+        legend_orientation='h'
+    )
+    return fig
+
+
+def main(mode='app'):
     """Runs through the funcionality of the Regressor and HST classes."""
     st.title('Catalogue data and regressions')
     models, data = process_catalogues(mode)
@@ -304,15 +427,18 @@ def main(mode='train'):
             f'RMSE {models[i].machine_type} {models[i].data_type} = {np.round(models[i].test_rmse_, decimals=2)}',
             u'\u00B1', f'{np.round(models[i].cv_rmsestd_,decimals=2)}', units
         )
-    oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim = set_sidebar()
-    st.title('Efficiency map')
-    hst = HST(max_displ, oil=oil, oil_temp=oil_temp, max_power_input=max_power,
-              input_gear_ratio=gear_ratio)
-    st.write(plot_hsu(hst, models, pressure_lim, max_speed, max_pressure))
-    st.title('Physical properties of oil')
-    st.write(hst.plot_oil())
     st.title('Validation of the HST efficiency model')
     st.write(plot_validation())
+    st.title('Comparison of HSTs\' sizes and oils')
+    st.write(plot_comparison(*set_sidebar('comparison')))
+    oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim = set_sidebar(
+        'map')
+    hst = HST(max_displ, oil=oil, oil_temp=oil_temp, max_power_input=max_power,
+              input_gear_ratio=gear_ratio)
+    st.title('Physical properties of oil')
+    st.write(hst.plot_oil())
+    st.title('Efficiency map')
+    st.write(plot_hsu(hst, models, pressure_lim, max_speed, max_pressure))
 
 
 if __name__ == '__main__':
