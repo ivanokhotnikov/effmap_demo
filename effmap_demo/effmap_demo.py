@@ -300,7 +300,7 @@ def set_sidebar(chart):
         max_pressure = st.sidebar.slider(
             'Max plotted pressure, bar', min_value=100, max_value=800, value=650, step=50)
         pressure_lim = st.sidebar.slider(
-            'Pressure limiter setting, bar', min_value=300, max_value=800, value=480, step=5)
+            'Pressure limiter setting, bar', min_value=300, max_value=800, value=475, step=5)
         pressure_charge = st.sidebar.slider(
             'Charge pressure setting, bar', min_value=10, max_value=70, value=25, step=5)
         return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge
