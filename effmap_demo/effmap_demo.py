@@ -307,9 +307,9 @@ def set_sidebar(chart):
     if chart == 'comparison':
         st.sidebar.header('Comparison chart')
         displ_1 = st.sidebar.slider(
-            'Displacement 1, cc/rev', min_value=100, max_value=800, value=440, step=10)
+            'Displacement 1, cc/rev', min_value=100, max_value=800, value=440, step=5)
         displ_2 = st.sidebar.slider(
-            'Displacement 2, cc/rev', min_value=100, max_value=800, value=330, step=10)
+            'Displacement 2, cc/rev', min_value=100, max_value=800, value=200, step=5)
         speed = st.sidebar.slider(
             'Input speed, rpm', min_value=1000, max_value=3500, value=2025, step=5)
         pressure = st.sidebar.slider(
