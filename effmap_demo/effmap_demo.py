@@ -18,6 +18,7 @@ def plot_validation():
     """Performs validation of the efficiency model by computing the volumetric efficiency of the benchmark HST, for which test data is available containing results of measurements of the input/output speeds, and comparing the computed efficiency with the test data.
 
     Returns:
+    ---
         fig: plotly figure object
     """
     data = pd.read_csv(
@@ -127,7 +128,7 @@ def fit_catalogues(data_in):
     ---
     data_in: pd.DataFrame
         Catalogue data
-    
+
     Returns:
     ---
     models: dict
@@ -259,6 +260,11 @@ def plot_catalogues(models, data_in):
 def set_sidebar(chart):
     """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map. Alternatively, sets the default values for the comparison chart
 
+    Paramters:
+    ---
+    chart: str, 'map' or 'comparison
+        A string flag defining a type of chart to customise.
+
     Returns:
     ---
     'map':
@@ -278,35 +284,41 @@ def set_sidebar(chart):
         pressure: int, default 475
     """
     if chart == 'map':
-        st.sidebar.markdown('Efficiency map')
+        st.sidebar.header('Efficiency map')
         oil = st.sidebar.selectbox('Oil',
                                    ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
         oil_temp = st.sidebar.slider(
-            'Oil temperature', min_value=0, max_value=100, value=100, step=10)
+            'Oil temperature, C', min_value=0, max_value=100, value=100, step=10)
         max_displ = st.sidebar.slider(
-            'Displacement', min_value=100, max_value=800, value=440, step=5)
+            'Displacement, cc/rev', min_value=100, max_value=800, value=440, step=5)
         max_power = st.sidebar.slider(
-            'Max transmitted power', min_value=400, max_value=800, value=685, step=5)
+            'Max transmitted power, kW', min_value=400, max_value=800, value=685, step=5)
         gear_ratio = st.sidebar.slider(
             'Input gear ratio', min_value=.5, max_value=2., value=.75, step=.25)
         max_speed = st.sidebar.slider(
-            'Max plotted speed', min_value=1000, max_value=4000, value=2400, step=100)
+            'Max plotted speed, rpm', min_value=1000, max_value=4000, value=2400, step=100)
         max_pressure = st.sidebar.slider(
-            'Max plotted pressure', min_value=100, max_value=800, value=650, step=50)
+            'Max plotted pressure, bar', min_value=100, max_value=800, value=650, step=50)
         pressure_lim = st.sidebar.slider(
-            'Pressure limiter setting', min_value=300, max_value=800, value=480, step=10)
-        return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim
+            'Pressure limiter setting, bar', min_value=300, max_value=800, value=480, step=10)
+        pressure_charge = st.sidebar.slider(
+            'Charge pressure setting, bar', min_value=10, max_value=70, value=25, step=5)
+        return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge
     if chart == 'comparison':
-        st.sidebar.markdown('Comparison chart')
+        st.sidebar.header('Comparison chart')
         displ_1 = st.sidebar.slider(
-            'Displacement 1', min_value=100, max_value=800, value=440, step=10)
+            'Displacement 1, cc/rev', min_value=100, max_value=800, value=440, step=10)
         displ_2 = st.sidebar.slider(
-            'Displacement 2', min_value=100, max_value=800, value=330, step=10)
+            'Displacement 2, cc/rev', min_value=100, max_value=800, value=330, step=10)
         speed = st.sidebar.slider(
-            'Input speed', min_value=1000, max_value=3500, value=2025, step=25)
+            'Input speed, rpm', min_value=1000, max_value=3500, value=2025, step=25)
         pressure = st.sidebar.slider(
-            'Discharge pressure', min_value=200, max_value=800, value=475, step=25)
-        return displ_1, displ_2, speed, pressure
+            'Discharge pressure, bar', min_value=200, max_value=800, value=475, step=25)
+        oil_temp = st.sidebar.slider(
+            'Temperature, C', min_value=0, max_value=100, value=100, step=10)
+        pressure_charge = st.sidebar.slider(
+            'Charge pressure, bar', min_value=10, max_value=70, value=25, step=5)
+        return displ_1, displ_2, speed, pressure, oil_temp, pressure_charge
 
 
 @st.cache
@@ -346,7 +358,7 @@ def process_catalogues(mode='app'):
 
 
 @st.cache
-def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure):
+def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure, pressure_charge):
     """
     For the given HST computes the sizes, efficiencies and plots the efficiency map.
 
@@ -358,16 +370,23 @@ def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure):
     hst.compute_speed_limit(models['pump_speed'])
     hst.add_no_load((1800, 140), (2025, 180))
     hst.compute_loads(pressure_lim)
-    return hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim,
+    return hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim, pressure_charge=pressure_charge,
                              show_figure=False,
                              save_figure=False)
 
 
 @st.cache
-def plot_comparison(displ_1, displ_2, speed, pressure):
+def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
     """
     Prints a bar plot to comare total efficiencies of two HSTs.
 
+    Parameters:
+    ---
+    displ_1, displ_2: float
+        Displacements of the HSTs to be comapred
+    speed, pressure, temp, charge: floats
+        Operational parameters for the comparison
+        
     Returns:
     ---
     fig: plotly figure object
@@ -375,15 +394,18 @@ def plot_comparison(displ_1, displ_2, speed, pressure):
     effs_1, effs_2 = [], []
     oils = ('SAE 15W40', 'SAE 10W40', 'SAE 10W60',
             'SAE 5W40', 'SAE 0W30', 'SAE 30')
-    hst_1, hst_2 = HST(displ_1), HST(displ_2)
+    hst_1, hst_2 = HST(displ_1, oil_temp=temp), HST(
+        displ_2, oil_temp=temp)
     hst_1.compute_sizes()
     hst_2.compute_sizes()
     for oil in oils:
         hst_1.oil, hst_2.oil = oil, oil
         hst_1.load_oil()
         hst_2.load_oil()
-        effs_1.append(hst_1.compute_eff(speed, pressure)['hst']['total'])
-        effs_2.append(hst_2.compute_eff(speed, pressure)['hst']['total'])
+        effs_1.append(hst_1.compute_eff(speed, pressure,
+                                        pressure_charge=charge)['hst']['total'])
+        effs_2.append(hst_2.compute_eff(speed, pressure,
+                                        pressure_charge=charge)['hst']['total'])
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=oils,
@@ -399,11 +421,10 @@ def plot_comparison(displ_1, displ_2, speed, pressure):
         text=[f'{eff:.2f}' for eff in effs_2],
         textposition='auto',
         name=f'{displ_2}',
-        marker_color='steelblue',
-
+        marker_color='steelblue'
     ))
     fig.update_layout(
-        title=f'Total efficiency of {displ_1} and {displ_2} cc/rev HSTs at {speed} rpm and {pressure} bar',
+        title=f'Total efficiency of {displ_1} and {displ_2} cc/rev HSTs at {speed} rpm, {pressure} bar, {temp}C oil',
         yaxis=dict(
             title='Total HST efficiency, %',
             range=[50, 90],
@@ -430,15 +451,17 @@ def main(mode='app'):
     st.title('Validation of the HST efficiency model')
     st.write(plot_validation())
     st.title('Comparison of HSTs\' sizes and oils')
+    st.sidebar.title('Plots customisation')
     st.write(plot_comparison(*set_sidebar('comparison')))
-    oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim = set_sidebar(
+    oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge = set_sidebar(
         'map')
     hst = HST(max_displ, oil=oil, oil_temp=oil_temp, max_power_input=max_power,
               input_gear_ratio=gear_ratio)
     st.title('Physical properties of oil')
     st.write(hst.plot_oil())
     st.title('Efficiency map')
-    st.write(plot_hsu(hst, models, pressure_lim, max_speed, max_pressure))
+    st.write(plot_hsu(hst, models, pressure_lim, max_speed,
+                      max_pressure, pressure_charge=pressure_charge))
 
 
 if __name__ == '__main__':
