@@ -300,7 +300,7 @@ def set_sidebar(chart):
         max_pressure = st.sidebar.slider(
             'Max plotted pressure, bar', min_value=100, max_value=800, value=650, step=50)
         pressure_lim = st.sidebar.slider(
-            'Pressure limiter setting, bar', min_value=300, max_value=800, value=480, step=10)
+            'Pressure limiter setting, bar', min_value=300, max_value=800, value=480, step=5)
         pressure_charge = st.sidebar.slider(
             'Charge pressure setting, bar', min_value=10, max_value=70, value=25, step=5)
         return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge
@@ -311,9 +311,9 @@ def set_sidebar(chart):
         displ_2 = st.sidebar.slider(
             'Displacement 2, cc/rev', min_value=100, max_value=800, value=330, step=10)
         speed = st.sidebar.slider(
-            'Input speed, rpm', min_value=1000, max_value=3500, value=2025, step=25)
+            'Input speed, rpm', min_value=1000, max_value=3500, value=2025, step=5)
         pressure = st.sidebar.slider(
-            'Discharge pressure, bar', min_value=200, max_value=800, value=475, step=25)
+            'Discharge pressure, bar', min_value=200, max_value=800, value=475, step=5)
         oil_temp = st.sidebar.slider(
             'Temperature, C', min_value=0, max_value=100, value=100, step=10)
         pressure_charge = st.sidebar.slider(
@@ -386,7 +386,7 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
         Displacements of the HSTs to be comapred
     speed, pressure, temp, charge: floats
         Operational parameters for the comparison
-        
+
     Returns:
     ---
     fig: plotly figure object
@@ -462,6 +462,22 @@ def main(mode='app'):
     st.title('Efficiency map')
     st.write(plot_hsu(hst, models, pressure_lim, max_speed,
                       max_pressure, pressure_charge=pressure_charge))
+    ENGINES = hst.load_engines()
+    hst.compute_sizes()
+    pivot_speed = ENGINES[hst.engine]['pivot speed']
+    st.title(
+        f'HST{hst.displ} at pivot turn')
+    st.write(
+        f'Pivot turn conditions: pump speed {int(pivot_speed * hst.input_gear_ratio)} rpm, discharge pressure {pressure_lim} bar, charge pressure {pressure_charge} bar, {hst.oil} at {hst.oil_temp}C')
+    st.write(
+        'Note: discharge pressure is set by the Pressure limiter setting in the sidebar')
+    st.header('Efficiencies')
+    st.write('Percentage')
+    st.write(pd.DataFrame(hst.compute_eff(
+        pivot_speed * hst.input_gear_ratio, pressure_lim)))
+    st.header('Performance')
+    st.write('Speed in rpm, torque in Nm, power in kW')
+    st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
 
 
 if __name__ == '__main__':
