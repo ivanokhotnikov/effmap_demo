@@ -476,7 +476,8 @@ def main(mode='app'):
     st.write('All in millimeters, nominals')
     st.write(pd.DataFrame(
         {'size': pd.Series([hst.pistons, hst.swash, hst.sizes['d'] * 1e3,
-                            hst.sizes['D'] * 1e3, hst.sizes['h'] * 1e3], index=['Number of pistons', 'Swash angle', 'Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])}))
+                            hst.sizes['D'] * 1e3, hst.sizes['h'] * 1e3],
+                           index=['Number of pistons', 'Swash angle', 'Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])}))
     st.header('Efficiencies')
     st.write('Percentage')
     st.write(pd.DataFrame(hst.compute_eff(
@@ -484,12 +485,12 @@ def main(mode='app'):
     st.header('Performance')
     st.write('Speed in rpm, torque in Nm, power in kW')
     st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
-    st.header('Structural loads')
+    st.header('Resultant structural loads')
     st.write('Force in kN, torque in Nm, pressure in bar')
     hst.compute_loads(pressure_lim)
     st.write(pd.DataFrame(
-        {'load': pd.Series(
-            [pressure_lim, pressure_charge, hst.shaft_radial, hst.shaft_torque, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z], index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)'])}))
+        {'load': pd.Series([pressure_lim, pressure_charge, hst.shaft_radial, hst.shaft_torque, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z, hst.motor_hp, hst.motor_lp],
+                           index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)', 'Motor HP (Normal)', 'Motor LP (Normal)'])}))
 
 
 if __name__ == '__main__':
