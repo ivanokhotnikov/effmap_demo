@@ -369,7 +369,6 @@ def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure, pressure_charge
     hst.compute_sizes()
     hst.compute_speed_limit(models['pump_speed'])
     hst.add_no_load((1800, 140), (2025, 180))
-    hst.compute_loads(pressure_lim)
     return hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim, pressure_charge=pressure_charge,
                              show_figure=False,
                              save_figure=False)
@@ -412,7 +411,7 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
         y=effs_1,
         text=[f'{eff:.2f}' for eff in effs_1],
         textposition='auto',
-        name=f'{displ_1}',
+        name=f'{displ_1} cc/rev',
         marker_color='indianred',
     ))
     fig.add_trace(go.Bar(
@@ -420,7 +419,7 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
         y=effs_2,
         text=[f'{eff:.2f}' for eff in effs_2],
         textposition='auto',
-        name=f'{displ_2}',
+        name=f'{displ_2} cc/rev',
         marker_color='steelblue'
     ))
     fig.update_layout(
@@ -485,12 +484,12 @@ def main(mode='app'):
     st.header('Performance')
     st.write('Speed in rpm, torque in Nm, power in kW')
     st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
-    st.header('Loads')
+    st.header('Structural loads')
     st.write('Force in kN, torque in Nm, pressure in bar')
     hst.compute_loads(pressure_lim)
     st.write(pd.DataFrame(
         {'load': pd.Series(
-            [pressure_lim, pressure_charge, hst.shaft_radial, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z], index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)'])}))
+            [pressure_lim, pressure_charge, hst.shaft_radial, hst.shaft_torque, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z], index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)'])}))
 
 
 if __name__ == '__main__':
