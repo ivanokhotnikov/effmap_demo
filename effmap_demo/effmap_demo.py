@@ -294,7 +294,7 @@ def set_sidebar(chart):
         max_power = st.sidebar.slider(
             'Max transmitted power, kW', min_value=400, max_value=800, value=685, step=5)
         gear_ratio = st.sidebar.slider(
-            'Input gear ratio', min_value=.5, max_value=2., value=.75, step=.25)
+            'Input gear ratio', min_value=.5, max_value=2., value=.75, step=.05)
         max_speed = st.sidebar.slider(
             'Max plotted speed, rpm', min_value=1000, max_value=4000, value=2400, step=100)
         max_pressure = st.sidebar.slider(
@@ -440,7 +440,7 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
 def main(mode='app'):
     """Runs through the funcionality of the Regressor and HST classes."""
     st.title('Catalogue data and regressions')
-    models, data = process_catalogues(mode)
+    models, data = process_catalogues()
     st.write(plot_catalogues(models, data))
     for i in models:
         units = 'rpm' if 'speed' in i else 'kg'
@@ -466,11 +466,18 @@ def main(mode='app'):
     hst.compute_sizes()
     pivot_speed = ENGINES[hst.engine]['pivot speed']
     st.title(
-        f'HST{hst.displ} at pivot turn')
+        f'Summary of HST{hst.displ} at pivot turn')
     st.write(
         f'Pivot turn conditions: pump speed {int(pivot_speed * hst.input_gear_ratio)} rpm, discharge pressure {pressure_lim} bar, charge pressure {pressure_charge} bar, {hst.oil} at {hst.oil_temp}C')
     st.write(
         'Note: discharge pressure is set by the Pressure limiter setting in the sidebar')
+    st.image(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM.png', use_column_width=True)
+    st.header('Key sizes and parameters')
+    st.write('All in millimeters, nominals')
+    st.write(pd.DataFrame(
+        {'size': pd.Series([hst.pistons, hst.swash, hst.sizes['d'] * 1e3,
+                            hst.sizes['D'] * 1e3, hst.sizes['h'] * 1e3], index=['Number of pistons', 'Swash angle', 'Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])}))
     st.header('Efficiencies')
     st.write('Percentage')
     st.write(pd.DataFrame(hst.compute_eff(
@@ -478,6 +485,12 @@ def main(mode='app'):
     st.header('Performance')
     st.write('Speed in rpm, torque in Nm, power in kW')
     st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
+    st.header('Loads')
+    st.write('Force in kN, torque in Nm, pressure in bar')
+    hst.compute_loads(pressure_lim)
+    st.write(pd.DataFrame(
+        {'load': pd.Series(
+            [pressure_lim, pressure_charge, hst.shaft_radial, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z], index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)'])}))
 
 
 if __name__ == '__main__':
