@@ -436,10 +436,10 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
     return fig
 
 
-def main(mode='app'):
+def main(mode):
     """Runs through the funcionality of the Regressor and HST classes."""
     st.title('Catalogue data and regressions')
-    models, data = process_catalogues()
+    models, data = process_catalogues(mode)
     st.write(plot_catalogues(models, data))
     for i in models:
         units = 'rpm' if 'speed' in i else 'kg'
