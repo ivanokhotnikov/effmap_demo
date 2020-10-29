@@ -257,12 +257,12 @@ def plot_catalogues(models, data_in):
     return fig
 
 
-def set_sidebar(chart):
-    """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map. Alternatively, sets the default values for the comparison chart
+def set_defaults(analysis_type):
+    """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map and conduct calculations.
 
     Paramters:
     ---
-    chart: str, 'map' or 'comparison
+    analysis_type: str, 'map' or 'comparison
         A string flag defining a type of chart to customise.
 
     Returns:
@@ -277,48 +277,48 @@ def set_sidebar(chart):
         max_pressure: int, default 650
         pressure_lim: int, default 480
 
-    'chart':
+    'comparison':
         displ_1: int, default 440
         displ_2: int, defalut 330
         speed: int, default 2025
         pressure: int, default 475
     """
-    if chart == 'map':
-        st.sidebar.header('Efficiency map')
-        oil = st.sidebar.selectbox('Oil',
-                                   ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
-        oil_temp = st.sidebar.slider(
-            'Oil temperature, C', min_value=0, max_value=100, value=100, step=10)
-        max_displ = st.sidebar.slider(
-            'Displacement, cc/rev', min_value=100, max_value=800, value=440, step=5)
-        max_power = st.sidebar.slider(
-            'Max transmitted power, kW', min_value=400, max_value=800, value=685, step=5)
-        gear_ratio = st.sidebar.slider(
-            'Input gear ratio', min_value=.5, max_value=2., value=.75, step=.05)
-        max_speed = st.sidebar.slider(
-            'Max plotted speed, rpm', min_value=1000, max_value=4000, value=2400, step=100)
-        max_pressure = st.sidebar.slider(
-            'Max plotted pressure, bar', min_value=100, max_value=800, value=650, step=50)
-        pressure_lim = st.sidebar.slider(
-            'Pressure limiter setting, bar', min_value=300, max_value=800, value=475, step=5)
-        pressure_charge = st.sidebar.slider(
-            'Charge pressure setting, bar', min_value=10, max_value=70, value=25, step=5)
-        return oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge
-    if chart == 'comparison':
-        st.sidebar.header('Comparison chart')
-        displ_1 = st.sidebar.slider(
-            'Displacement 1, cc/rev', min_value=100, max_value=800, value=440, step=5)
-        displ_2 = st.sidebar.slider(
-            'Displacement 2, cc/rev', min_value=100, max_value=800, value=200, step=5)
-        speed = st.sidebar.slider(
-            'Input speed, rpm', min_value=1000, max_value=3500, value=2025, step=5)
-        pressure = st.sidebar.slider(
-            'Discharge pressure, bar', min_value=200, max_value=800, value=475, step=5)
-        oil_temp = st.sidebar.slider(
-            'Temperature, C', min_value=0, max_value=100, value=100, step=10)
-        pressure_charge = st.sidebar.slider(
-            'Charge pressure, bar', min_value=10, max_value=70, value=25, step=5)
-        return displ_1, displ_2, speed, pressure, oil_temp, pressure_charge
+    if analysis_type == 'sizing':
+        displ = st.slider('Displacement, cc/rev', 100, 800, 440, 5)
+        max_swash_angle = st.slider('Max swash angle, deg', 15, 21, 18, 1)
+        pistons = st.slider('Number of pistons', 5, 13, 9, 2)
+        return displ, max_swash_angle, pistons
+    if analysis_type == 'performance':
+        input_speed = st.slider('HST input speed, rpm', 1000, 3500, 2025, 5)
+        pressure_charge = st.slider('Charge pressure, bar', 5, 70, 25, 5)
+        pressure_discharge = st.slider(
+            'Discharge pressure, bar', 100, 1000, 475, 5)
+        return input_speed, pressure_charge, pressure_discharge
+    if analysis_type == 'map':
+        max_speed = st.slider(
+            'Max plotted speed, rpm', 1000, 4000, 2400, 100)
+        max_pressure = st.slider(
+            'Max plotted pressure, bar', 100, 1000, 650, 50)
+        max_power = st.slider(
+            'Max absorbed power, kW', 200, 1100, 685, 5)
+        gear_ratio = st.slider(
+            'Input gear ratio', .5, 2., .75, .05)
+        pressure_lim = st.slider(
+            'Pressure limiter setting, bar', 200, 1000, 475, 5)
+        return max_speed, max_pressure,  max_power, gear_ratio, pressure_lim
+    if analysis_type == 'comparison':
+        st.header('Comparison chart')
+        displ_1 = st.slider(
+            'Displacement 1, cc/rev', 100, 800, 440, 5)
+        displ_2 = st.slider(
+            'Displacement 2, cc/rev', 100, 800, 330, 5)
+        speed = st.slider(
+            'Input speed, rpm', 1000, 3500, 2025, 5)
+        pressure = st.slider(
+            'Discharge pressure, bar', 200, 800, 475, 5)
+        oil_temp = st.slider(
+            'Temperature, C', 0, 100, 100, 10)
+        return displ_1, displ_2, speed, pressure, oil_temp
 
 
 @st.cache
@@ -358,7 +358,7 @@ def process_catalogues(mode='app'):
 
 
 @st.cache
-def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure, pressure_charge):
+def plot_hsu(hst, models, max_speed, pressure_charge, max_pressure,  pressure_lim):
     """
     For the given HST computes the sizes, efficiencies and plots the efficiency map.
 
@@ -375,7 +375,7 @@ def plot_hsu(hst, models, pressure_lim, max_speed, max_pressure, pressure_charge
 
 
 @st.cache
-def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
+def plot_comparison(displ_1, displ_2, speed, pressure, temp):
     """
     Prints a bar plot to comare total efficiencies of two HSTs.
 
@@ -391,6 +391,8 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
     fig: plotly figure object
     """
     effs_1, effs_2 = [], []
+    motor_pows_1, motor_pows_2 = [], []
+    pump_pows_1, pump_pows_2 = [], []
     oils = ('SAE 15W40', 'SAE 10W40', 'SAE 10W60',
             'SAE 5W40', 'SAE 0W30', 'SAE 30')
     hst_1, hst_2 = HST(displ_1, oil_temp=temp), HST(
@@ -401,45 +403,149 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp, charge):
         hst_1.oil, hst_2.oil = oil, oil
         hst_1.load_oil()
         hst_2.load_oil()
-        effs_1.append(hst_1.compute_eff(speed, pressure,
-                                        pressure_charge=charge)['hst']['total'])
-        effs_2.append(hst_2.compute_eff(speed, pressure,
-                                        pressure_charge=charge)['hst']['total'])
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
+        eff_1 = hst_1.compute_eff(speed, pressure)
+        eff_2 = hst_2.compute_eff(speed, pressure)
+        effs_1.append(eff_1['hst']['total'])
+        effs_2.append(eff_2['hst']['total'])
+        motor_pows_1.append(hst_1.performance['motor']['power'])
+        motor_pows_2.append(hst_2.performance['motor']['power'])
+        pump_pows_1.append(hst_1.performance['pump']['power'])
+        pump_pows_2.append(hst_2.performance['pump']['power'])
+    fig_eff = go.Figure()
+    fig_eff.add_trace(go.Bar(
         x=oils,
         y=effs_1,
         text=[f'{eff:.2f}' for eff in effs_1],
         textposition='auto',
         name=f'{displ_1} cc/rev',
-        marker_color='indianred',
+        marker_color='steelblue',
     ))
-    fig.add_trace(go.Bar(
+    fig_eff.add_trace(go.Bar(
         x=oils,
         y=effs_2,
         text=[f'{eff:.2f}' for eff in effs_2],
         textposition='auto',
         name=f'{displ_2} cc/rev',
-        marker_color='steelblue'
+        marker_color='indianred'
     ))
-    fig.update_layout(
+    fig_eff.update_layout(
         title=f'Total efficiency of {displ_1} and {displ_2} cc/rev HSTs at {speed} rpm, {pressure} bar, {temp}C oil',
         yaxis=dict(
             title='Total HST efficiency, %',
             range=[50, 90],
         ),
-        plot_bgcolor='rgba(255,255,255,1)',
-        paper_bgcolor='rgba(255,255,255,0)',
+        template='none',
         showlegend=True,
         legend_orientation='h'
     )
-    return fig
+    fig_pow = go.Figure()
+    fig_pow.add_trace(go.Bar(
+        x=oils,
+        y=pump_pows_1,
+        text=[f'{pow:.2f}' for pow in pump_pows_1],
+        textposition='auto',
+        name=f'{displ_1} cc/rev in',
+        marker_color='steelblue',
+    ))
+    fig_pow.add_trace(go.Bar(
+        x=oils,
+        y=motor_pows_1,
+        text=[f'{pow:.2f}' for pow in motor_pows_1],
+        textposition='auto',
+        name=f'{displ_1} cc/rev  out',
+        marker_color='lightblue',
+    ))
+    fig_pow.add_trace(go.Bar(
+        x=oils,
+        y=pump_pows_2,
+        text=[f'{pow:.2f}' for pow in pump_pows_2],
+        textposition='auto',
+        name=f'{displ_2} cc/rev  in',
+        marker_color='indianred',
+    ))
+    fig_pow.add_trace(go.Bar(
+        x=oils,
+        y=motor_pows_2,
+        text=[f'{pow:.2f}' for pow in motor_pows_2],
+        textposition='auto',
+        name=f'{displ_2} cc/rev out',
+        marker_color='pink'
+    ))
+    fig_pow.update_layout(
+        title=f'Power balance of {displ_1} and {displ_2} cc/rev HSTs at {speed} rpm, {pressure} bar, {temp}C oil',
+        yaxis=dict(
+            title='Power, kW',
+        ),
+        template='none',
+        showlegend=True,
+        legend_orientation='h'
+    )
+    return fig_eff, fig_pow
 
 
 def main(mode):
     """Runs through the funcionality of the Regressor and HST classes."""
-    st.title('Catalogue data and regressions')
+    st.title('Design and Performance of a Hydrostatic Transmission (HST)')
+    st.header('Pump sizing')
+    st.subheader('General design of an axial piston pump')
+    st.image(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM.png', use_column_width=True)
+    st.write('1 - pump shaft, 2 - pump outer bearing, 3 - swash plate, 4 - piston shoe/slipper, 5 - piston, 6 - cylinder block, 7 - valve plate, 8 - mranifold/distribution block')
+    st.subheader('Parameters')
+    hst = HST(*set_defaults('sizing'))
+    hst.compute_sizes()
+    st.subheader('Key sizes')
+    st.write('All in millimeters, nominals')
+    st.dataframe(
+        {'size': pd.Series([hst.sizes['d'] * 1e3,
+                            hst.sizes['D'] * 1e3, hst.sizes['h'] * 1e3],
+                           index=['Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])})
     models, data = process_catalogues(mode)
+    hst.compute_speed_limit(models['pump_speed'])
+    st.subheader('Pump speed limits')
+    st.write('Speed in rpm')
+    st.dataframe(
+        {'speed': pd.Series(hst.pump_speed_limit,
+                            index=['Min rated speed', 'Rated speed', 'Max rated speed'])})
+    st.header('Performance')
+    st.subheader('Parameters')
+    hst.oil = st.selectbox('Oil',
+                           ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
+    hst.load_oil()
+    st.subheader('Physical properties of oil')
+    st.write(hst.plot_oil())
+    hst.oil_temp = st.slider('Oil temperature, C', 0, 100, 100, 10)
+    input_speed, pressure_charge, pressure_discharge = set_defaults(
+        'performance')
+    st.subheader('Efficiencies')
+    st.write('Percentage')
+    st.dataframe(hst.compute_eff(
+        input_speed, pressure_discharge, pressure_charge=pressure_charge))
+    st.subheader('Performance')
+    st.write('Speed in rpm, torque in Nm, power in kW')
+    st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
+    st.subheader('Resultant structural loads')
+    st.subheader('Loading scheme of an axial piston pump')
+    st.image(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM_1.png', use_column_width=True)
+    st.write('Force in kN, torque in Nm, pressure in bar')
+    hst.compute_loads(pressure_discharge)
+    st.write(pd.DataFrame(
+        {'load': pd.Series([pressure_discharge, pressure_charge, hst.shaft_radial, hst.shaft_torque, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z, hst.motor_hp, hst.motor_lp],
+                           index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)', 'Motor HP (Normal)', 'Motor LP (Normal)'])}))
+    st.header('Efficiency map')
+    st.subheader('Parameters')
+    max_speed, max_pressure, max_power, gear_ratio, pressure_lim = set_defaults(
+        'map')
+    st.write(plot_hsu(hst, models, max_speed,
+                      pressure_charge, max_pressure, pressure_lim))
+    st.header('Comparison of HSTs\' sizes and oils')
+    fig_eff, fig_pow = plot_comparison(*set_defaults('comparison'))
+    st.write(fig_eff)
+    st.write(fig_pow)
+    st.header('Validation of the HST efficiency model')
+    st.write(plot_validation())
+    st.header('Catalogue data and regressions')
     st.write(plot_catalogues(models, data))
     for i in models:
         units = 'rpm' if 'speed' in i else 'kg'
@@ -447,50 +553,6 @@ def main(mode):
             f'RMSE {models[i].machine_type} {models[i].data_type} = {np.round(models[i].test_rmse_, decimals=2)}',
             u'\u00B1', f'{np.round(models[i].cv_rmsestd_,decimals=2)}', units
         )
-    st.title('Validation of the HST efficiency model')
-    st.write(plot_validation())
-    st.title('Comparison of HSTs\' sizes and oils')
-    st.sidebar.title('Plots customisation')
-    st.write(plot_comparison(*set_sidebar('comparison')))
-    oil, oil_temp, max_displ, max_power, gear_ratio, max_speed, max_pressure, pressure_lim, pressure_charge = set_sidebar(
-        'map')
-    hst = HST(max_displ, oil=oil, oil_temp=oil_temp, max_power_input=max_power,
-              input_gear_ratio=gear_ratio)
-    st.title('Physical properties of oil')
-    st.write(hst.plot_oil())
-    st.title('Efficiency map')
-    st.write(plot_hsu(hst, models, pressure_lim, max_speed,
-                      max_pressure, pressure_charge=pressure_charge))
-    ENGINES = hst.load_engines()
-    hst.compute_sizes()
-    pivot_speed = ENGINES[hst.engine]['pivot speed']
-    st.title(
-        f'Summary of HST{hst.displ} at pivot turn')
-    st.write(
-        f'Pivot turn conditions: pump speed {int(pivot_speed * hst.input_gear_ratio)} rpm, discharge pressure {pressure_lim} bar, charge pressure {pressure_charge} bar, {hst.oil} at {hst.oil_temp}C')
-    st.write(
-        'Note: discharge pressure is set by the Pressure limiter setting in the sidebar')
-    st.image(
-        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM.png', use_column_width=True)
-    st.header('Key sizes and parameters')
-    st.write('All in millimeters, nominals')
-    st.write(pd.DataFrame(
-        {'size': pd.Series([hst.pistons, hst.swash, hst.sizes['d'] * 1e3,
-                            hst.sizes['D'] * 1e3, hst.sizes['h'] * 1e3],
-                           index=['Number of pistons', 'Swash angle', 'Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])}))
-    st.header('Efficiencies')
-    st.write('Percentage')
-    st.write(pd.DataFrame(hst.compute_eff(
-        pivot_speed * hst.input_gear_ratio, pressure_lim)))
-    st.header('Performance')
-    st.write('Speed in rpm, torque in Nm, power in kW')
-    st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
-    st.header('Resultant structural loads')
-    st.write('Force in kN, torque in Nm, pressure in bar')
-    hst.compute_loads(pressure_lim)
-    st.write(pd.DataFrame(
-        {'load': pd.Series([pressure_lim, pressure_charge, hst.shaft_radial, hst.shaft_torque, hst.swash_hp_x, hst.swash_hp_z, hst.swash_lp_x, hst.swash_lp_z, hst.motor_hp, hst.motor_lp],
-                           index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)', 'Motor HP (Normal)', 'Motor LP (Normal)'])}))
 
 
 if __name__ == '__main__':
