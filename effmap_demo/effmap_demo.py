@@ -535,7 +535,7 @@ def main(mode):
                            index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)', 'Motor HP (Normal)', 'Motor LP (Normal)'])}))
     st.header('Efficiency map')
     st.subheader('Parameters')
-    max_speed, max_pressure, max_power, gear_ratio, pressure_lim = set_defaults(
+    max_speed, max_pressure, hst.max_power_input, hst.input_gear_ratio, pressure_lim = set_defaults(
         'map')
     st.write(plot_hsu(hst, models, max_speed,
                       pressure_charge, max_pressure, pressure_lim))
