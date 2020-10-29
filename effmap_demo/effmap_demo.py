@@ -490,7 +490,7 @@ def main(mode):
     st.subheader('General design of an axial piston pump')
     st.image(
         'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM.png', use_column_width=True)
-    st.write('1 - pump shaft, 2 - pump outer bearing, 3 - swash plate, 4 - piston shoe/slipper, 5 - piston, 6 - cylinder block, 7 - valve plate, 8 - mranifold/distribution block')
+    st.write('1 - pump shaft, 2 - pump outer bearing, 3 - swash plate, 4 - piston shoe/slipper, 5 - piston, 6 - cylinder block, 7 - valve plate, 8 - manifold/distribution block')
     st.subheader('Parameters')
     hst = HST(*set_defaults('sizing'))
     hst.compute_sizes()
