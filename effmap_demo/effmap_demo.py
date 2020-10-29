@@ -507,7 +507,7 @@ def main(mode):
     st.dataframe(
         {'speed': pd.Series(hst.pump_speed_limit,
                             index=['Min rated speed', 'Rated speed', 'Max rated speed'])})
-    st.header('Performance')
+    st.header('HST performance')
     st.subheader('Parameters')
     hst.oil = st.selectbox('Oil',
                            ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
