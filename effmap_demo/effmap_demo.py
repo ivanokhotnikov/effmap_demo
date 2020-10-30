@@ -275,7 +275,6 @@ def set_defaults(analysis_type):
         gear_ratio: float, default .75
         max_speed: int, default 2400
         max_pressure: int, default 650
-        pressure_lim: int, default 480
 
     'comparison':
         displ_1: int, default 440
@@ -303,9 +302,7 @@ def set_defaults(analysis_type):
             'Max absorbed power, kW', 200, 1100, 685, 5)
         gear_ratio = st.slider(
             'Input gear ratio', .5, 2., .75, .05)
-        pressure_lim = st.slider(
-            'Pressure limiter setting, bar', 200, 1000, 475, 5)
-        return max_speed, max_pressure,  max_power, gear_ratio, pressure_lim
+        return max_speed, max_pressure,  max_power, gear_ratio
     if analysis_type == 'comparison':
         st.header('Comparison chart')
         displ_1 = st.slider(
@@ -358,7 +355,7 @@ def process_catalogues(mode='app'):
 
 
 @st.cache
-def plot_hsu(hst, models, max_speed, pressure_charge, max_pressure,  pressure_lim):
+def plot_hsu(hst, models, max_speed, pressure_charge, max_pressure):
     """
     For the given HST computes the sizes, efficiencies and plots the efficiency map.
 
@@ -369,7 +366,7 @@ def plot_hsu(hst, models, max_speed, pressure_charge, max_pressure,  pressure_li
     hst.compute_sizes()
     hst.compute_speed_limit(models['pump_speed'])
     hst.add_no_load((1800, 140), (2025, 180))
-    return hst.plot_eff_maps(max_speed, max_pressure, pressure_lim=pressure_lim, pressure_charge=pressure_charge,
+    return hst.plot_eff_maps(max_speed, max_pressure, pressure_charge=pressure_charge,
                              show_figure=False,
                              save_figure=False)
 
@@ -535,10 +532,10 @@ def main(mode):
                            index=['Discharge pressure', 'Charge pressure', 'Shaft radial', 'Shaft torque', 'Swash plate HP (X)', 'Swash plate HP (Z)', 'Swash plate LP (X)', 'Swash plate LP (Z)', 'Motor HP (Normal)', 'Motor LP (Normal)'])}))
     st.header('Efficiency map')
     st.subheader('Parameters')
-    max_speed, max_pressure, hst.max_power_input, hst.input_gear_ratio, pressure_lim = set_defaults(
+    max_speed, max_pressure, hst.max_power_input, hst.input_gear_ratio = set_defaults(
         'map')
     st.write(plot_hsu(hst, models, max_speed,
-                      pressure_charge, max_pressure, pressure_lim))
+                      pressure_charge, max_pressure))
     st.header('Comparison of HSTs\' sizes and oils')
     fig_eff, fig_pow = plot_comparison(*set_defaults('comparison'))
     st.write(fig_eff)
