@@ -34,7 +34,7 @@ def plot_validation():
     bore_min = 1.1671 * 25.4 * 1e-3
     rad_clearance_max = (bore_max - piston_min) / 2
     rad_clearance_min = (bore_min - piston_max) / 2
-    benchmark = HST(disp=196, swash=15, oil='SAE 30', oil_temp=60)
+    benchmark = HST(196, swash=15, oil='SAE 30', oil_temp=60)
     benchmark.compute_sizes(k1=.7155, k2=.9017, k3=.47, k4=.9348, k5=.9068)
     eff_min = benchmark.compute_eff(
         speed_pump=1780, pressure_discharge=207, pressure_charge=14, h3=rad_clearance_max)
@@ -46,7 +46,7 @@ def plot_validation():
         x=[eff_max['hst']['volumetric'], eff_max['hst']['volumetric']],
         y=[0, .6],
         mode='lines',
-        name='Prediciton. Min clearance',
+        name='Prediction. Min clearance',
         line=dict(
             width=1.5,
         ),
@@ -55,7 +55,7 @@ def plot_validation():
         x=[eff_min['hst']['volumetric'], eff_min['hst']['volumetric']],
         y=[0, .6],
         mode='lines',
-        name='Prediciton. Max clearance',
+        name='Prediction. Max clearance',
         line=dict(
             width=1.5,
         ),
@@ -258,12 +258,12 @@ def plot_catalogues(models, data_in):
 
 
 def set_defaults(analysis_type):
-    """Assigns the default values of oil, its paramteres and initial design paramteres to initialize a HST to plot its efficiency map and conduct calculations.
+    """Assigns the default values of oil, its parameters and initial design parameters to initialize a HST to plot its efficiency map and conduct calculations.
 
     Paramters:
     ---
     analysis_type: str, 'map' or 'comparison
-        A string flag defining a type of chart to customise.
+        A string flag defining a type of chart to customize.
 
     Returns:
     ---
@@ -278,7 +278,7 @@ def set_defaults(analysis_type):
 
     'comparison':
         displ_1: int, default 440
-        displ_2: int, defalut 330
+        displ_2: int, default 330
         speed: int, default 2025
         pressure: int, default 475
     """
@@ -481,7 +481,7 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp):
 
 
 def main(mode):
-    """Runs through the funcionality of the Regressor and HST classes."""
+    """Runs through the functionality of the Regressor and HST classes."""
     st.title('Design and Performance of a Hydrostatic Transmission (HST)')
     st.header('Pump sizing')
     st.subheader('General design of an axial piston pump')
