@@ -488,7 +488,16 @@ def main(mode):
     st.image(
         'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM.png', use_column_width=True)
     st.write('1 - pump shaft, 2 - pump outer bearing, 3 - swash plate, 4 - piston shoe/slipper, 5 - piston, 6 - cylinder block, 7 - valve plate, 8 - manifold/distribution block')
-    st.subheader('Parameters')
+    st.subheader('Sizing formulas')
+    st.write('Piston diameter')
+    st.latex(r'd = \sqrt[3]{\frac{4 k_1 V}{z^2 \tan{\gamma}}}')
+    st.write('Pitch-circle diameter (PCD)')
+    st.latex(r'D = \frac{zd}{\pi k_1}')
+    st.write('Piston stroke')
+    st.latex(r'h = D \tan \gamma')
+    st.markdown(
+        r'$V$ - pump displacement, $z$ - number of pistons, $\gamma$ - max swash angl, $k_1$ - PCD balance')
+    st.subheader('Setting pump parameters')
     hst = HST(*set_defaults('sizing'))
     hst.compute_sizes()
     st.subheader('Key sizes')
@@ -499,7 +508,7 @@ def main(mode):
                            index=['Piston diameter', 'Pitch-circle diameter', 'Piston stroke'])})
     models, data = process_catalogues(mode)
     hst.compute_speed_limit(models['pump_speed'])
-    st.subheader('Pump speed limits')
+    st.subheader('Pump speed limits (see Catalogue data and Regressions)')
     st.write('Speed in rpm')
     st.dataframe(
         {'speed': pd.Series(hst.pump_speed_limit,
