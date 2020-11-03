@@ -288,7 +288,8 @@ def set_defaults(analysis_type):
         pistons = st.slider('Number of pistons', 5, 13, 9, 2)
         return displ, max_swash_angle, pistons
     if analysis_type == 'performance':
-        input_speed = st.slider('HST input speed, rpm', 1000, 3500, 2025, 5)
+        input_speed = st.slider(
+            'HST input (pump) speed, rpm', 1000, 3500, 2025, 5)
         pressure_charge = st.slider('Charge pressure, bar', 5, 70, 25, 5)
         pressure_discharge = st.slider(
             'Discharge pressure, bar', 100, 1000, 475, 5)
@@ -514,6 +515,70 @@ def main(mode):
         {'speed': pd.Series(hst.pump_speed_limit,
                             index=['Min rated speed', 'Rated speed', 'Max rated speed'])})
     st.header('HST performance')
+    st.subheader('Efficiencies formulas')
+    st.write('Pump volumetric efficiency')
+    st.latex(r'\eta_{Pv} = 1 - \frac{\Delta p}{\beta} - \frac{Q_L}{Q_{Pth}}')
+    st.latex(r'Q_{Pth} = n_P V_P')
+    st.write('Motor volumetric efficiency')
+    st.latex(r'\eta_{Mv} = 1 - \frac{Q_L}{Q_{Mth}}')
+    st.latex(r'Q_{Mth} = n_M V_M')
+    st.write('HST volumetric efficiency')
+    st.latex(r'\eta_{HSTv} = \eta_{Pv} \eta_{Mv}')
+    st.markdown(
+        r"$\Delta p = p_{h} - p_{l}$ - difference between the high (or discharge) $p_h$ and low (or charge) $p_l$ pressure levels of an HST's lines, $\beta$ - oil bulk modulus, $Q_L$ - total machine's leakage volume flow rate, $Q_{Pth}$, $Q_{Mth}$ - pump's and motor's theoretical volume flow rates, $n_P, n_M$ - pump's and motor's shaft speeds, $V_P, V_M$ - pump's and motor's displacements")
+    st.write('Pump mechanical efficiency')
+    st.latex(r'	\eta_{Pm} = 1 - A_P \exp\left(-\frac{\mu n_P B_{P}}{\Delta p\gamma_P}\right) - C_P\sqrt{\frac{\mu n_P}{{\Delta p}\gamma_P }}-\frac{D_P}{\Delta p \gamma_P}')
+    st.write('Motor mechanical efficiency')
+    st.latex(r'\eta_{Mm} = 1 - A_M \exp\left(-\frac{\mu n_M B_{M}}{\Delta p\gamma_M}\right) - C_M \sqrt{\frac{\mu n_M}{{\Delta p}\gamma_M }}-\frac{D_M}{\Delta p\gamma_M}')
+    st.write('HST mechanical efficiency')
+    st.latex(r'\eta_{HSTm} = \eta_{Pm} \eta_{Mm}')
+    st.markdown(
+        r"$A_P, B_P, C_P, D_P, A_M, B_M, C_M, D_M$ - empirical coefficients of pump's and motor's mechanical efficiencies, $\mu$ - oil dynamic viscosity, $\gamma_P, \gamma_M$ - pump and motor swash angles")
+    st.write('Pump total efficiency')
+    st.latex(r'\eta_{P} = \eta_{Pv} \eta_{Pm}')
+    st.write('Motor total efficiency')
+    st.latex(r'\eta_{M} = \eta_{Mv} \eta_{Mm}')
+    st.write('HST total efficiency')
+    st.latex(r'\eta_{HST} = \eta_{P} \eta_{M}')
+    st.latex(r'\eta_{HST} = \eta_{HSTv} \eta_{HSTm}')
+    st.subheader('Performance formulas')
+    st.write('Averaged actual volume flow rate in the HST')
+    st.latex(
+        r'Q_{act} = \eta_{Pv} Q_{Pth} = \left(1 - \frac{\Delta p}{\beta} \right) Q_{Pth} - Q_{L}')
+    st.write('Pump torque')
+    st.latex(r'	T_P=\frac{\Delta p V_P}{\eta_{Pm}}')
+    st.write('Motor speed')
+    st.latex(
+        r'n_M = \frac{\eta_{Mv} Q_{act}}{V_M} = \eta_{HSTv} \frac{V_P}{V_M} n_P')
+    st.write('Motor torque')
+    st.latex(
+        r'T_{M} = \eta_{Mm} \Delta p V_M = \eta_{HSTm} \frac{V_M}{V_P} T_P')
+    st.write('Absorbed power (pump shaft power)')
+    st.latex(r'P_{in} = n_P T_P')
+    st.write('Transmitted power (motor shaft power)')
+    st.latex(r'P_{out} = n_M T_M = \eta_{HST} P_{in}')
+    st.subheader('Averaged structural loads formulas')
+    st.write('Shaft radial load')
+    st.latex(
+        r'\overline{F}_r = \left( \left\lceil \frac{z}{2} \right\rceil p_h + \left\lfloor \frac{z}{2} \right\rfloor p_l  \right) A_p \tan \gamma')
+    st.write('Swash plate high-pressure side longitudinal load (X)')
+    st.latex(
+        r'\overline{F}_{sw.hp.X} = \left\lceil \frac{z}{2} \right\rceil p_h A_p')
+    st.write('Swash plate high-pressure side transversal load (Z)')
+    st.latex(
+        r'\overline{F}_{sw.hp.Z} = \left\lceil \frac{z}{2} \right\rceil p_h A_p \tan \gamma')
+    st.write('Swash plate low-pressure side longitudinal load (X)')
+    st.latex(
+        r'\overline{F}_{sw.lp.X} = \left\lfloor \frac{z}{2} \right\rfloor p_l A_p')
+    st.write('Swash plate low-pressure side transversal load (Z)')
+    st.latex(
+        r'\overline{F}_{sw.lp.Z} = \left\lfloor \frac{z}{2} \right\rfloor p_l A_p \tan \gamma')
+    st.write('Motor high-pressure side normal load')
+    st.latex(
+        r'\overline{F}_{m.hp} = \left\lceil\frac{z}{2}\right\rceil p_h A_p\frac{1}{\cos \gamma}')
+    st.write('Motor low-pressure side normal load')
+    st.latex(
+        r'\overline{F}_{m.lp} = \left\lfloor\frac{z}{2}\right\rfloor p_l A_p\frac{1}{\cos \gamma}')
     st.subheader('Parameters')
     hst.oil = st.selectbox('Oil',
                            ('SAE 15W40', 'SAE 10W40', 'SAE 10W60', 'SAE 5W40', 'SAE 0W30', 'SAE 30'))
@@ -524,6 +589,7 @@ def main(mode):
     input_speed, pressure_charge, pressure_discharge = set_defaults(
         'performance')
     st.subheader('Efficiencies')
+    st.write('Note: pump and motor have same design, displacement, max swash angle and number of pistons. Hydraulic lines between the pump and the motor do not introduce power losses')
     st.write('Percentage')
     st.dataframe(hst.compute_eff(
         input_speed, pressure_discharge, pressure_charge=pressure_charge))
