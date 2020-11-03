@@ -557,6 +557,9 @@ def main(mode):
     st.latex(r'P_{in} = n_P T_P')
     st.write('Transmitted power (motor shaft power)')
     st.latex(r'P_{out} = n_M T_M = \eta_{HST} P_{in}')
+    st.subheader('Loading scheme of an axial piston pump')
+    st.image(
+        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM_1.png', use_column_width=True)
     st.subheader('Averaged structural loads formulas')
     st.write('Shaft radial load')
     st.latex(
@@ -597,9 +600,6 @@ def main(mode):
     st.write('Speed in rpm, torque in Nm, power in kW')
     st.write(pd.DataFrame(hst.performance)[['pump', 'motor', 'delta']])
     st.subheader('Resultant structural loads')
-    st.subheader('Loading scheme of an axial piston pump')
-    st.image(
-        'https://raw.githubusercontent.com/ivanokhotnikov/effmap_demo/master/APM_1.png', use_column_width=True)
     st.write('Force in kN, torque in Nm, pressure in bar')
     hst.compute_loads(pressure_discharge)
     st.write(pd.DataFrame(
