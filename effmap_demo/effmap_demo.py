@@ -372,7 +372,7 @@ def plot_hsu(hst, models, max_speed, pressure_charge, max_pressure):
 @st.cache
 def plot_comparison(displ_1, displ_2, speed, pressure, temp):
     """
-    Prints a bar plot to comare total efficiencies of two HSTs.
+    Prints a bar plot to compare total efficiencies of two HSTs.
 
     Parameters:
     ---
@@ -478,7 +478,9 @@ def plot_comparison(displ_1, displ_2, speed, pressure, temp):
 
 
 def main(mode):
-    """Runs through the functionality of the Regressor and HST classes."""
+    """
+    Creates the dashboard, visualizes perfroamnce of the HST. Runs through the functionality of the Regressor and HST classes.
+    """
     st.title('Design and Performance of a Hydrostatic Transmission (HST)')
     st.header('Pump sizing')
     st.subheader('General design of an axial piston pump')
