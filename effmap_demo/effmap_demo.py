@@ -650,6 +650,9 @@ def main(mode):
     st.subheader('Parameters')
     max_speed, max_pressure, hst.max_power_input, hst.input_gear_ratio = set_defaults(
         'map')
+    temp_engine = st.selectbox(
+        'Engine', ('Engine 1', 'Engine 2', 'Engine 3', 'Engine 4'))
+    hst.engine = temp_engine.lower().replace(" ", "_")
     st.write(plot_hsu(hst, models, max_speed, pressure_charge, max_pressure))
     st.header('Comparison of HSTs\' sizes and oils')
     fig_eff, fig_pow = plot_comparison(*set_defaults('comparison'))
