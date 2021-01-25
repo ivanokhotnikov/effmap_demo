@@ -8,7 +8,8 @@ setuptools.setup(
     version="0.0.2",
     author="Ivan Okhotnikov",
     author_email="ivan.okhotnikov@outlook.com",
-    description="Streamlit demonstration of usage of regressor and HST object introduced in effmap",
+    description=
+    "Streamlit demonstration of usage of regressor and HST object introduced in effmap",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ivanokhotnikov/effmap_demo/",
@@ -18,6 +19,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
-    include_package_data=True
-)
+    python_requires='>=3.8',
+    include_package_data=True)
