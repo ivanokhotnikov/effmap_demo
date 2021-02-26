@@ -8,4 +8,4 @@ scikit-learn>=0.24.1
 scipy>=1.5.4
 streamlit>=0.75.0
 terminado>=0.9.2
-effmap>=0.0.10
+effmap>=0.0.12

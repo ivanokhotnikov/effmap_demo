@@ -285,8 +285,8 @@ def set_defaults(analysis_type):
         pressure: int, default 475
     """
     if analysis_type == 'sizing':
-        displ = st.slider('Displacement, cc/rev', 100, 800, 440, 5)
-        max_swash_angle = st.slider('Max swash angle, deg', 15, 21, 18, 1)
+        displ = st.slider('Displacement, cc/rev', 100, 800, 350, 5)
+        max_swash_angle = st.slider('Max swash angle, deg', 15, 21, 15, 1)
         pistons = st.slider('Number of pistons', 5, 13, 9, 2)
         return displ, max_swash_angle, pistons
     if analysis_type == 'performance':
@@ -298,7 +298,7 @@ def set_defaults(analysis_type):
         return input_speed, pressure_charge, pressure_discharge
     if analysis_type == 'map':
         max_speed = st.slider('Max plotted speed, rpm', 1000, 4000, 2400, 100)
-        max_pressure = st.slider('Max plotted pressure, bar', 100, 1000, 650,
+        max_pressure = st.slider('Max plotted pressure, bar', 100, 1200, 650,
                                  50)
         max_power = st.slider('Max absorbed power, kW', 200, 1100, 685, 5)
         gear_ratio = st.slider('Input gear ratio', .5, 2., .75, .05)
